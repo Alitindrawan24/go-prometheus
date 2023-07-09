@@ -44,10 +44,7 @@ func RecordLatency(path string, start time.Time) {
 	appHttpLatency.WithLabelValues(path).Observe(elapsed)
 }
 
-type Middleware struct {
-}
-
-func (middleware *Middleware) MetricCollector() echo.MiddlewareFunc {
+func MetricCollector() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			start := time.Now()
