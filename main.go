@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -41,4 +42,24 @@ func RecordHttpCode(code int) {
 func RecordLatency(path string, start time.Time) {
 	elapsed := time.Since(start).Seconds()
 	appHttpLatency.WithLabelValues(path).Observe(elapsed)
+}
+
+type Middleware struct {
+}
+
+func (middleware *Middleware) MetricCollector() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			start := time.Now()
+
+			request := next(c)
+
+			// Record metrics
+			RecordHttpRequest(c.Request().Method, c.Path())
+			RecordHttpCode(c.Response().Status)
+			RecordLatency(c.Path(), start)
+
+			return request
+		}
+	}
 }
